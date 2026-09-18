@@ -1,0 +1,42 @@
+x-simulation: &simulation
+  image: target-intercept:jazzy
+  build:
+    context: .
+    dockerfile: Dockerfile
+  init: true
+  shm_size: "2gb"
+  stop_grace_period: 20s
+  environment: &simulation-environment
+    SCENARIO: ${SCENARIO:-v0}
+    GZ_PARTITION: ${GZ_PARTITION:-target_intercept}
+    ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
+    ROBOT_X: ${ROBOT_X:-}
+    ROBOT_Y: ${ROBOT_Y:-}
+    ROBOT_YAW: ${ROBOT_YAW:-}
+    TARGET_X: ${TARGET_X:-}
+    TARGET_Y: ${TARGET_Y:-}
+    TARGET_YAW: ${TARGET_YAW:-}
+
+services:
+  simulation:
+    <<: *simulation
+    environment:
+      <<: *simulation-environment
+      GZ_ARGS: ${GZ_ARGS:--r}
+      RVIZ: ${RVIZ:-true}
+      DISPLAY: ${DISPLAY:-:0}
+      QT_X11_NO_MITSHM: "1"
+      LIBGL_ALWAYS_SOFTWARE: ${LIBGL_ALWAYS_SOFTWARE:-1}
+    volumes:
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
+
+  simulation-headless:
+    <<: *simulation
+    profiles: ["headless"]
+    environment:
+      <<: *simulation-environment
+      GZ_ARGS: ${GZ_ARGS:--r -s}
+      RVIZ: "false"
+      LIBGL_ALWAYS_SOFTWARE: ${LIBGL_ALWAYS_SOFTWARE:-1}
